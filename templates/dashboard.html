@@ -5,77 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini SIEM Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .alert-row { background-color: #7f1d1d; color: white; } /* Dark red for alerts */
-    </style>
 </head>
-<body class="bg-gray-900 text-gray-200 min-h-screen">
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Security Dashboard</h1>
 
-<div class="flex">
-    <div class="w-64 bg-gray-800 p-6 min-h-screen">
-        <h1 class="text-3xl font-bold mb-10 text-green-400">Mini SIEM</h1>
-        <ul class="space-y-4 text-lg">
-            <li class="text-green-400 font-semibold">Dashboard</li>
-        </ul>
-    </div>
-
-    <div class="flex-1 p-10">
-        <h1 class="text-4xl font-bold mb-10 text-white">Security Operations Center</h1>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            <div class="bg-gray-800 p-6 rounded-xl shadow">
-                <h3 class="text-gray-400">Recent Alerts</h3>
-                <p class="text-4xl font-bold text-red-400">{{ alerts|length }}</p>
-            </div>
-            <div class="bg-gray-800 p-6 rounded-xl shadow">
-                <h3 class="text-gray-400">Recent Logs</h3>
-                <p class="text-4xl font-bold text-blue-400">{{ logs|length }}</p>
-            </div>
-        </div>
-
-        <div class="bg-gray-800 p-8 rounded-xl shadow mb-10">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl text-red-400 font-semibold">🚨 Recent Alerts (Forensic View)</h2>
-            </div>
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-semibold mb-4 text-red-600">Active Alerts</h2>
             <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead>
-                        <tr class="text-gray-400 border-b border-gray-700">
-                            <th class="text-left p-3">Time</th>
-                            <th class="text-left p-3">IP</th>
-                            <th class="text-left p-3">Reason</th>
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Timestamp</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Source IP</th>
+                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Message</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="alert-table-body" class="text-gray-700">
                         {% for alert in alerts %}
-                        <tr class="border-b border-gray-700 alert-row">
-                            <td class="p-3">{{ alert['timestamp'] }}</td>
-                            <td class="p-3">{{ alert['ip'] }}</td>
-                            <td class="p-3">{{ alert['reason'] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="bg-gray-800 p-8 rounded-xl shadow">
-            <h2 class="text-2xl mb-6 text-white font-semibold">📝 Recent Logs</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead>
-                        <tr class="text-gray-400 border-b border-gray-700">
-                            <th class="text-left p-3">Time</th>
-                            <th class="text-left p-3">IP</th>
-                            <th class="text-left p-3">Message</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in logs %}
-                        <tr class="border-b border-gray-700 hover:bg-gray-700">
-                            <td class="p-3">{{ log['timestamp'] }}</td>
-                            <td class="p-3">{{ log['ip'] }}</td>
-                            <td class="p-3">{{ log['message'] }}</td>
+                        <tr class="border-b hover:bg-red-50">
+                            <td class="text-left py-3 px-4">{{ alert[1] }}</td>
+                            <td class="text-left py-3 px-4">{{ alert[2] }}</td>
+                            <td class="text-left py-3 px-4">{{ alert[3] }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -83,7 +34,30 @@
             </div>
         </div>
     </div>
-</div>
 
+    <script>
+        // Function to refresh the dashboard content smoothly
+        function refreshDashboard() {
+            fetch('/')
+                .then(response => response.text())
+                .then(html => {
+                    // Create a temporary document to hold the fetched HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Replace the current table body with the new one
+                    const newTableBody = doc.querySelector('#alert-table-body');
+                    const currentTableBody = document.querySelector('#alert-table-body');
+                    
+                    if (newTableBody && currentTableBody) {
+                        currentTableBody.innerHTML = newTableBody.innerHTML;
+                    }
+                })
+                .catch(error => console.error('Error fetching dashboard:', error));
+        }
+
+        // Refresh every 4 seconds (4000 milliseconds)
+        setInterval(refreshDashboard, 4000);
+    </script>
 </body>
 </html>
