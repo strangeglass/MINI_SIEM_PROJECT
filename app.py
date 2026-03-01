@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 import json
 import threading
-import detector # NEW: Import our detection module
+import detector 
 
 app = Flask(__name__)
 
@@ -29,6 +29,17 @@ def index():
     conn.close()
     return render_template('dashboard.html', logs=logs, alerts=alerts)
 
+# NEW: Route to clear alerts
+@app.route('/clear_alerts', methods=['POST'])
+def clear_alerts():
+    with db_lock:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM alerts')
+        conn.commit()
+        conn.close()
+    return redirect(url_for('index'))
+
 # Route to receive logs
 @app.route('/ingest', methods=['POST'])
 def ingest_log():
@@ -48,7 +59,7 @@ def ingest_log():
             conn.commit()
             conn.close()
             
-            # NEW: Run the detection logic after saving the log
+            # Run the detection logic after saving the log
             detector.check_for_brute_force(ip)
 
         print(f"Log received and saved: {ip} - {message}")

@@ -34,7 +34,14 @@
         </div>
 
         <div class="bg-gray-800 p-8 rounded-xl shadow mb-10">
-            <h2 class="text-2xl mb-6 text-red-400 font-semibold">🚨 Recent Alerts</h2>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl text-red-400 font-semibold">🚨 Recent Alerts</h2>
+                <form action="/clear_alerts" method="post">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                        Clear Alerts
+                    </button>
+                </form>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
