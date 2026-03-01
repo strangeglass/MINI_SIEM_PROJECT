@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import sqlite3
 import json
 import threading
+import detector # NEW: Import our detection module
 
 app = Flask(__name__)
 
@@ -13,7 +14,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# Updated route to display the dashboard with data
+# Route to display the dashboard
 @app.route('/')
 def index():
     conn = get_db_connection()
@@ -46,6 +47,9 @@ def ingest_log():
             )
             conn.commit()
             conn.close()
+            
+            # NEW: Run the detection logic after saving the log
+            detector.check_for_brute_force(ip)
 
         print(f"Log received and saved: {ip} - {message}")
         return jsonify({"status": "success", "message": "Log ingested"}), 200
