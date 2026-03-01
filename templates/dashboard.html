@@ -5,32 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini SIEM Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensuring dark theme background */
+        body { background-color: #1a202c; } 
+    </style>
 </head>
-<body class="bg-gray-100 font-sans">
-    <div class="container mx-auto p-6">
-        <h1 class="text-3xl font-bold mb-6 text-gray-800">Security Dashboard</h1>
+<body class="text-gray-100 font-sans">
+    <div class="flex">
+        <div class="w-64 bg-gray-900 h-screen p-4">
+            <h1 class="text-2xl font-bold text-green-400 mb-6">Mini SIEM</h1>
+            <ul>
+                <li class="text-green-400 font-semibold">Dashboard</li>
+            </ul>
+        </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-semibold mb-4 text-red-600">Active Alerts</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white">
-                    <thead class="bg-gray-800 text-white">
-                        <tr>
-                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Timestamp</th>
-                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Source IP</th>
-                            <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Message</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alert-table-body" class="text-gray-700">
-                        {% for alert in alerts %}
-                        <tr class="border-b hover:bg-red-50">
-                            <td class="text-left py-3 px-4">{{ alert[1] }}</td>
-                            <td class="text-left py-3 px-4">{{ alert[2] }}</td>
-                            <td class="text-left py-3 px-4">{{ alert[3] }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="flex-1 p-6">
+            <h2 class="text-3xl font-bold mb-6">Security Operations Center</h2>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-sm text-gray-400">Recent Alerts</h3>
+                    <p class="text-4xl font-bold text-red-400">{{ alerts|length }}</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-sm text-gray-400">Recent Logs</h3>
+                    <p class="text-4xl font-bold text-blue-400">{{ log_count }}</p>
+                    </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4 text-red-400">🚨 Recent Alerts</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="border-b border-gray-700">
+                            <tr>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Time</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">IP</th>
+                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alert-table-body" class="text-gray-200">
+                            {% for alert in alerts %}
+                            <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                <td class="text-left py-3 px-4">{{ alert[1] }}</td>
+                                <td class="text-left py-3 px-4">{{ alert[2] }}</td>
+                                <td class="text-left py-3 px-4">{{ alert[3] }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -51,6 +75,13 @@
                     
                     if (newTableBody && currentTableBody) {
                         currentTableBody.innerHTML = newTableBody.innerHTML;
+                    }
+
+                    // Update the Log Count too
+                    const newLogCount = doc.querySelector('.text-blue-400');
+                    const currentLogCount = document.querySelector('.text-blue-400');
+                    if (newLogCount && currentLogCount) {
+                        currentLogCount.innerText = newLogCount.innerText;
                     }
                 })
                 .catch(error => console.error('Error fetching dashboard:', error));

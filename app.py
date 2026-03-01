@@ -1,63 +1,74 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3
-import threading
-import detector 
+import os
 
 app = Flask(__name__)
 
-db_lock = threading.Lock()
+DB_FILE = 'siem.db'
 
-# Helper function to get database connection
 def get_db_connection():
-    conn = sqlite3.connect('siem.db')
+    """Establishes a connection to the SQLite database."""
+    conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     return conn
 
-# Route to display the dashboard
+def init_db():
+    """Initializes the database tables."""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    # Create logs table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            ip TEXT,
+            message TEXT
+        )
+    ''')
+    # Create alerts table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alerts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            ip TEXT,
+            reason TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
 @app.route('/')
-def index():
+def dashboard():
+    """Serves the dashboard page with recent alerts and log count."""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Fetch recent logs
-    logs = cursor.execute('SELECT * FROM logs ORDER BY id DESC LIMIT 10').fetchall()
+    # Fetch alerts
+    cursor.execute('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 10')
+    alerts = cursor.fetchall()
     
-    # Fetch recent alerts
-    alerts = cursor.execute('SELECT * FROM alerts ORDER BY id DESC LIMIT 10').fetchall()
+    # --- FETCH LOG COUNT ---
+    cursor.execute('SELECT COUNT(*) FROM logs')
+    log_count = cursor.fetchone()[0]
+    # -----------------------
     
     conn.close()
-    return render_template('dashboard.html', logs=logs, alerts=alerts)
+    
+    # --- PASS log_count TO TEMPLATE ---
+    return render_template('dashboard.html', alerts=alerts, log_count=log_count)
 
-# Route to receive logs
 @app.route('/ingest', methods=['POST'])
 def ingest_log():
-    try:
-        log_data = request.json
-        ip = log_data.get('ip')
-        message = log_data.get('message')
-        timestamp = log_data.get('timestamp')
-
-        with db_lock:
-            conn = get_db_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                'INSERT INTO logs (timestamp, ip, message) VALUES (?, ?, ?)',
-                (timestamp, ip, message)
-            )
-            conn.commit()
-            conn.close()
-            
-            # Run the detection logic after saving the log
-            detector.check_for_brute_force(ip)
-
-        print(f"Log received and saved: {ip} - {message}")
-        return jsonify({"status": "success", "message": "Log ingested"}), 200
-        
-    except Exception as e:
-        print(f"Error ingesting log: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 400
+    """Ingests a log entry from the simulator."""
+    log = request.json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO logs (timestamp, ip, message) VALUES (?, ?, ?)',
+                   (log['timestamp'], log['ip'], log['message']))
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'log ingested'}), 200
 
 if __name__ == '__main__':
-    import database
-    database.init_db()
-    app.run(debug=True, port=5000)
+    init_db()
+    app.run(host='0.0.0.0', port=5000, debug=True)
