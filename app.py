@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 import sqlite3
-import json
 import threading
 import detector 
 
@@ -28,17 +27,6 @@ def index():
     
     conn.close()
     return render_template('dashboard.html', logs=logs, alerts=alerts)
-
-# NEW: Route to clear alerts
-@app.route('/clear_alerts', methods=['POST'])
-def clear_alerts():
-    with db_lock:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM alerts')
-        conn.commit()
-        conn.close()
-    return redirect(url_for('index'))
 
 # Route to receive logs
 @app.route('/ingest', methods=['POST'])
