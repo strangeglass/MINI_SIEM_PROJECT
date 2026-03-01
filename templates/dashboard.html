@@ -5,25 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini SIEM Dashboard</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
-        h1 { color: #333; }
-        .container { display: flex; gap: 20px; }
-        .box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #eef2f5; }
+        h1 { color: #2c3e50; text-align: center; }
+        .container { display: flex; gap: 20px; flex-wrap: wrap; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 300px; }
+        h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #555; }
+        .alert-row { background-color: #fadbd8; } /* Light red for alerts */
     </style>
 </head>
 <body>
     <h1>Security Operations Center Dashboard</h1>
     <div class="container">
         <div class="box">
-            <h2>Recent Alerts</h2>
-            <p>Alerts will appear here soon...</p>
+            <h2>🚨 Recent Alerts</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>IP</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr class="alert-row">
+                        <td>{{ alert['timestamp'] }}</td>
+                        <td>{{ alert['ip'] }}</td>
+                        <td>{{ alert['reason'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
         <div class="box">
-            <h2>Recent Logs</h2>
-            <p>Logs will appear here soon...</p>
+            <h2>📝 Recent Logs</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>IP</th>
+                        <th>Message</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log['timestamp'] }}</td>
+                        <td>{{ log['ip'] }}</td>
+                        <td>{{ log['message'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </body>
