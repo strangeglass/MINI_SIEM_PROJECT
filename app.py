@@ -39,23 +39,27 @@ def init_db():
 
 @app.route('/')
 def dashboard():
-    """Serves the dashboard page with recent alerts and log count."""
+    """Serves the dashboard page with alerts and log count."""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Fetch alerts
-    cursor.execute('SELECT * FROM alerts ORDER BY timestamp DESC LIMIT 10')
+    # --- FETCH ALL ALERTS (NO LIMIT) ---
+    cursor.execute('SELECT * FROM alerts ORDER BY timestamp DESC')
     alerts = cursor.fetchall()
     
-    # --- FETCH LOG COUNT ---
+    # --- FETCH TOTAL ALERT COUNT ---
+    cursor.execute('SELECT COUNT(*) FROM alerts')
+    total_alerts = cursor.fetchone()[0]
+    # ---------------------------------------------
+    
+    # Fetch Log Count
     cursor.execute('SELECT COUNT(*) FROM logs')
     log_count = cursor.fetchone()[0]
-    # -----------------------
     
     conn.close()
     
-    # --- PASS log_count TO TEMPLATE ---
-    return render_template('dashboard.html', alerts=alerts, log_count=log_count)
+    # --- PASS total_alerts AND alerts ---
+    return render_template('dashboard.html', alerts=alerts, log_count=log_count, total_alerts=total_alerts)
 
 @app.route('/ingest', methods=['POST'])
 def ingest_log():

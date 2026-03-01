@@ -25,11 +25,11 @@
             <div class="grid grid-cols-2 gap-6 mb-6">
                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
                     <h3 class="text-sm text-gray-400">Recent Alerts</h3>
-                    <p class="text-4xl font-bold text-red-400">{{ alerts|length }}</p>
+                    <p class="text-4xl font-bold text-red-400" id="total-alerts">{{ total_alerts }}</p>
                 </div>
                 <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
                     <h3 class="text-sm text-gray-400">Recent Logs</h3>
-                    <p class="text-4xl font-bold text-blue-400">{{ log_count }}</p>
+                    <p class="text-4xl font-bold text-blue-400" id="log-count">{{ log_count }}</p>
                 </div>
             </div>
 
@@ -77,16 +77,16 @@
                         currentTableBody.innerHTML = newTableBody.innerHTML;
                     }
 
-                    // Update the Log Count too
-                    const newLogCount = doc.querySelector('.text-blue-400');
-                    const currentLogCount = document.querySelector('.text-blue-400');
+                    // Update the Log Count
+                    const newLogCount = doc.getElementById('log-count');
+                    const currentLogCount = document.getElementById('log-count');
                     if (newLogCount && currentLogCount) {
                         currentLogCount.innerText = newLogCount.innerText;
                     }
                     
-                    // Update the Alert Count too
-                    const newAlertCount = doc.querySelector('.text-red-400');
-                    const currentAlertCount = document.querySelector('.text-red-400');
+                    // Update the Alert Count
+                    const newAlertCount = doc.getElementById('total-alerts');
+                    const currentAlertCount = document.getElementById('total-alerts');
                     if (newAlertCount && currentAlertCount) {
                         currentAlertCount.innerText = newAlertCount.innerText;
                     }
