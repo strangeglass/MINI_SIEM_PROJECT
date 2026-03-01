@@ -1,27 +1,35 @@
+# database.py
 import sqlite3
+from config import DATABASE
+
+def get_db():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def init_db():
-    conn = sqlite3.connect('siem.db')
+    conn = get_db()
     cursor = conn.cursor()
-    # Create tables for logs and alerts
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp DATETIME,
-            ip TEXT,
-            message TEXT
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS alerts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp DATETIME,
-            ip TEXT,
-            reason TEXT
-        )
-    ''')
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        ip TEXT,
+        status TEXT
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS alerts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        ip TEXT,
+        type TEXT
+    )
+    """)
+
     conn.commit()
     conn.close()
 
-if __name__ == '__main__':
-    init_db()
+

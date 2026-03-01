@@ -1,7 +1,5 @@
-# Configuration settings for the Mini SIEM
+# config.py
 
-# Threshold: Number of failures to trigger an alert
-FAILURE_THRESHOLD = 5
-
-# Time Window: Number of seconds to look back for failures
-TIME_WINDOW = 60 # seconds
+DATABASE = "siem.db"
+BRUTE_FORCE_THRESHOLD = 5
+TIME_WINDOW = 60  # seconds

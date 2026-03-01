@@ -1,101 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini SIEM Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Ensuring dark theme background */
-        body { background-color: #1a202c; } 
-    </style>
+<meta charset="UTF-8">
+<title>Mini SIEM</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.alert { background-color:#7f1d1d; padding:8px; margin-bottom:5px; border-radius:5px; color:white; }
+tr:hover { background-color:#333; }
+</style>
 </head>
-<body class="text-gray-100 font-sans">
-    <div class="flex">
-        <div class="w-64 bg-gray-900 h-screen p-4">
-            <h1 class="text-2xl font-bold text-green-400 mb-6">Mini SIEM</h1>
-            <ul>
-                <li class="text-green-400 font-semibold">Dashboard</li>
-            </ul>
-        </div>
+<body class="bg-gray-900 text-gray-200 min-h-screen">
 
-        <div class="flex-1 p-6">
-            <h2 class="text-3xl font-bold mb-6">Security Operations Center</h2>
-
-            <div class="grid grid-cols-2 gap-6 mb-6">
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-sm text-gray-400">Recent Alerts</h3>
-                    <p class="text-4xl font-bold text-red-400" id="total-alerts">{{ total_alerts }}</p>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                    <h3 class="text-sm text-gray-400">Recent Logs</h3>
-                    <p class="text-4xl font-bold text-blue-400" id="log-count">{{ log_count }}</p>
-                </div>
-            </div>
-
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-semibold mb-4 text-red-400">🚨 Recent Alerts</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="border-b border-gray-700">
-                            <tr>
-                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Time</th>
-                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">IP</th>
-                                <th class="text-left py-3 px-4 uppercase font-semibold text-sm">Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody id="alert-table-body" class="text-gray-200">
-                            {% for alert in alerts %}
-                            <tr class="border-b border-gray-700 hover:bg-gray-700">
-                                <td class="text-left py-3 px-4">{{ alert[1] }}</td>
-                                <td class="text-left py-3 px-4">{{ alert[2] }}</td>
-                                <td class="text-left py-3 px-4 text-red-400 font-semibold">{{ alert[3] }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<div class="flex">
+    <!-- Sidebar -->
+    <div class="w-64 bg-gray-800 p-6">
+        <h1 class="text-3xl font-bold mb-10 text-green-400">Mini SIEM</h1>
+        <ul class="space-y-4 text-lg">
+            <li class="text-green-400">Dashboard</li>
+            <li>Logs</li>
+            <li>Alerts</li>
+        </ul>
     </div>
 
-    <script>
-        // Function to refresh the dashboard content smoothly
-        function refreshDashboard() {
-            fetch('/')
-                .then(response => response.text())
-                .then(html => {
-                    // Create a temporary document to hold the fetched HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    
-                    // Replace the current table body with the new one
-                    const newTableBody = doc.querySelector('#alert-table-body');
-                    const currentTableBody = document.querySelector('#alert-table-body');
-                    
-                    if (newTableBody && currentTableBody) {
-                        currentTableBody.innerHTML = newTableBody.innerHTML;
-                    }
+    <!-- Main Content -->
+    <div class="flex-1 p-10">
+        <!-- Stats cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="bg-gray-800 p-6 rounded-xl shadow">
+                <h3 class="text-gray-400">Total Logs</h3>
+                <p class="text-4xl font-bold text-blue-400">{{ total_logs }}</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-xl shadow">
+                <h3 class="text-gray-400">Total Alerts</h3>
+                <p class="text-4xl font-bold text-red-400">{{ total_alerts }}</p>
+            </div>
+            <div class="bg-gray-800 p-6 rounded-xl shadow">
+                <h3 class="text-gray-400">Status</h3>
+                <p class="text-4xl font-bold text-green-400">Active</p>
+            </div>
+        </div>
 
-                    // Update the Log Count
-                    const newLogCount = doc.getElementById('log-count');
-                    const currentLogCount = document.getElementById('log-count');
-                    if (newLogCount && currentLogCount) {
-                        currentLogCount.innerText = newLogCount.innerText;
-                    }
-                    
-                    // Update the Alert Count
-                    const newAlertCount = doc.getElementById('total-alerts');
-                    const currentAlertCount = document.getElementById('total-alerts');
-                    if (newAlertCount && currentAlertCount) {
-                        currentAlertCount.innerText = newAlertCount.innerText;
-                    }
-                })
-                .catch(error => console.error('Error fetching dashboard:', error));
-        }
+        <!-- Event Distribution Chart -->
+        <div class="bg-gray-800 p-8 rounded-xl shadow mb-10">
+            <h2 class="text-2xl mb-6">Event Distribution</h2>
+            <canvas id="eventChart" height="100"></canvas>
+        </div>
 
-        // Refresh every 4 seconds (4000 milliseconds)
-        setInterval(refreshDashboard, 4000);
-    </script>
+        <!-- Alerts -->
+        <div class="bg-gray-800 p-8 rounded-xl shadow mb-10">
+            <h2 class="text-2xl mb-6 text-red-400">Recent Alerts</h2>
+            {% if alerts %}
+                {% for alert in alerts %}
+                    <div class="alert">
+                        <strong>{{ alert['timestamp'] }}</strong> — {{ alert['type'] }} — IP: {{ alert['ip'] }}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-gray-500">No alerts yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Logs -->
+        <div class="bg-gray-800 p-8 rounded-xl shadow">
+            <h2 class="text-2xl mb-6">Recent Logs</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead>
+                        <tr class="text-gray-400 border-b border-gray-700">
+                            <th>Time</th>
+                            <th>IP</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                            <tr class="border-b border-gray-700 hover:bg-gray-700">
+                                <td>{{ log['timestamp'] }}</td>
+                                <td>{{ log['ip'] }}</td>
+                                <td>{{ log['status'].capitalize() }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Chart.js Script -->
+<script type="text/javascript">
+const labels = JSON.parse('{{ labels|tojson|safe }}');
+const values = JSON.parse('{{ values|tojson|safe }}');
+
+const ctx = document.getElementById('eventChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Event Count',
+            data: values,
+            backgroundColor: ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6'],
+            borderColor: 'transparent',
+            borderWidth: 1
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+
+// Auto-refresh every 3 seconds
+setInterval(() => location.reload(), 5000);
+</script>
+
 </body>
 </html>
